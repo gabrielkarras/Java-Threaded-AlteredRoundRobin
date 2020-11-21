@@ -41,7 +41,6 @@ public class Main {
 
     /* Global Data Field */
     static int turn=-1; // Indicates the turn of process
-    // static Semaphore s1=new Semaphore(0);
 
     /* Global Semaphore Data Field */
     static Semaphore mutex1 = new Semaphore(0);
@@ -66,12 +65,12 @@ public class Main {
         /* Reading input.txt */
 
         /* Initialize processes */
-        Process p1=new Process(10,1,0);
-        Process p2=new Process(9,2,1);
-        Process p3=new Process(4,10,2);
+        Process p1 = new Process(10,1,0);
+        Process p2 = new Process(9,2,1);
+        Process p3 = new Process(4,10,2);
 
         // Array of processes
-        Process[] ps ={p1,p2,p3};
+        Process[] ps = {p1,p2,p3};
 
         /* Initialize Scheduler and run every thread for each process */
         Scheduler thread = new Scheduler(ps);
@@ -83,9 +82,7 @@ public class Main {
         /* Write to output.txt */
     }
 
-    /**
-     *
-     */
+    /* Scheduler Class */
     static class Scheduler extends Thread{
 
         /* Member Data Field */
@@ -97,11 +94,18 @@ public class Main {
          * @param ps Array of process which will be managed by scheduler
          */
         Scheduler(Process[] ps){
-            this.ps=ps;
+            this.ps = ps;
         }
 
         /**
-         * Runs scheduler thread
+         * Runs scheduler thread for hybrid round robin
+         *
+         * Initially searches for the earliest arrival time and initializes the scheduler time to the earliest
+         * arrival time
+         *
+         * The scheduler then searches throughout the processes that have arrived or are currently waiting for the
+         * smallest CPU burst time(smallest remaining execution time). It schedule the process with the smallest
+         * remaining execution time. It continues until every process is terminated.
          */
         public void run(){
 
@@ -109,8 +113,8 @@ public class Main {
 
             /* Verify the arrival time of all processes */
             double beginning = ps[0].arrival; // Start with arrival time of first process
-            for(int i=1;i<ps.length;i++){
-                if(ps[i].arrival < beginning) beginning = ps[i].arrival; // Earliest arrival time will initiate scheduler
+            for(int i = 1; i < ps.length; i++){
+                if(ps[i].arrival < beginning) beginning = ps[i].arrival;// Earliest arrival time will initiate scheduler
             }
 
             timer = beginning; // Initiate Scheduler timer with earliest arrival time
@@ -129,23 +133,22 @@ public class Main {
                     /* Verifies if the process has arrived and is ready to run */
                     if(ps[i].running==true && timer >= ps[i].arrival) {
 
-                        /* Verifies if processes the same burst time
-                         * The scheduler will select the older process
-                         */
-                        if (ps[i].a <= min) {
-                            if(ps[i].a==min && ps[i].arrival > ps[thisturn].arrival) {
+                        /* If process burst time is the smaller than min*/
+                        if (ps[i].burst <= min) {
+                            /* Verifies if processes the same burst time. The scheduler will select the older process */
+                            if(ps[i].burst==min && ps[i].arrival > ps[thisturn].arrival) {
                                 //busy waiting
                             }
                             else {
-                                thisturn = i;
-                                min = ps[i].a;
+                                thisturn = i; // Sets new turn to process with smallest remaining time
+                                min = ps[i].burst; // Sets new minimum remaining time
                             }
                         }
                     }
                 }
 
-                turn = thisturn;
-                timer += ps[turn].a*0.1; //increment of timer
+                turn = thisturn; // Sets process id with current smallest remaining time
+                timer += ps[turn].burst*0.1; // Increment scheduler timer by q(10%)
                 System.out.println("timer is:" + timer);
 
                 /* Verify if all processes are terminated */
@@ -159,49 +162,73 @@ public class Main {
                     break;
                 }
 
-                /* Exiting critical section and release mutex lock */
+                /* Exiting critical section */
                 mutex1.Signal();
             }
         }
     }
 
-    /**
-     *
-     */
+    /* Process Class */
      static class Process extends Thread{
-        int ID;
-        public double a; // this is the burst time
-        public double arrival;
-        public boolean running=true;
-        Process(double a,double arrival, int ID){
-            this.a=a;
-            this.ID=ID;
-            this.arrival=arrival;
+
+         /* Member Data Field */
+        int ID; // ID of process-will help with determining turn
+        public double burst; // CPU burst time of the process(as well as the remaining time)
+        public double arrival; // Arrival time of process
+        public boolean running = true; // Status of process(running or waiting)
+
+        /**
+         * Default constructor for Process
+         * @param cpuburst CPU burst time of process
+         * @param arrival Arrival time of process
+         * @param ID Process ID
+         */
+        Process(double cpuburst, double arrival, int ID){
+            this.burst = cpuburst;
+            this.ID = ID;
+            this.arrival = arrival;
         }
+
+        /**
+         * Runs process thread
+         *
+         * Processes will continually ask the scheduler if it is their turn to run
+         * If it is not their turn, then they wait
+         * If it is their turn, then they decrease their remaining time by q(10%)
+         *
+         * Processes are then considered terminated if their remaining time is less than 0.1
+         */
         public void run() {
-            System.out.println("process["+ID+"] start");
+            System.out.println("process[" + ID + "] start");
+            /* Process will continually verify */
             while (true) {
 
-                //used to check which process should be executed
+                /* Verifies it is it the process's turn */
                 while (turn != ID) {
                     try {
-                        sleep(1);
+                        sleep(1); // wait
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+
+                /* Entering critical section */
                 mutex1.Wait();
 
-                a = 0.9 * a;//decrease the burst time
+                burst = 0.9 * burst; // Decrease remaining time by q(%10)
+                System.out.println("process[" + ID + "] remaining is: " + burst);
+                /* Exiting critical section */
+                mutex2.Signal();
 
-                System.out.println("process[" + ID + "] remaining is: " + a);
-                mutex2.Signal(); //System.out.println("signal");
-
-                //check if the process is finished
-                if (a < 0.1) {
-                    System.out.println("process["+ID+ "] finished");
-                    mutex2.Signal();
-                    running = false;
+                /*
+                * Verify if process is terminated
+                * Threshold/Cut-off remaining time is 0.1
+                * Any remaining burst time for a process that is less than cut-off is considered terminated
+                * */
+                if (burst < 0.1) {
+                    System.out.println("process[" + ID + "] finished");
+                    mutex2.Signal(); // Signal other processes
+                    running = false; // Status is terminated
                     break;
                 }
             }
