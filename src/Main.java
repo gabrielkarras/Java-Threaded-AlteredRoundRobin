@@ -10,9 +10,11 @@
         -Main: Implements hybrid round robin scheduler and runs main program process.
                Includes static classes Scheduler and Process
 
-        -Scheduler:
+        -Scheduler: Implements the scheduler logic by searching for shortest remaining time and allocating time
+                    time quantum q(10% of total remaining execution time)
 
-        -Process:
+        -Process: Implements the process logic by continually asking the scheduler for CPU resource until it reaches
+                  the cut-off time(when remaining time < 0.1) then it is considered terminated
 
     @Description
     Implement the simulation of a process scheduler that is responsible for scheduling a given list of
