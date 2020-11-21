@@ -7,7 +7,7 @@ A simulation of a modified round-robin(includes SRTF scheduling) in java
 Implement the simulation of a process scheduler that is responsible for scheduling a given list of
 processes. The scheduler is running on a machine with one CPU. The scheduling policy is a type of non‐preemptive round‐robin scheduling and works as follows:  
 
-- Scheduler works in a cyclic manner, i.e. it gives the CPU to a process for a quantum of time and then get the CPU back.  
+- Main works in a cyclic manner, i.e. it gives the CPU to a process for a quantum of time and then get the CPU back.  
 - The quantum for each process is equal to 10 percent of the remaining execution time of the process.  
 - Each process comes with its own arrival time and burst time.  
 - Each time, the scheduler gives the CPU to a process (say P1) that has the shortest remaining processing time, but this should not starve other processes in the queue, and which are ready to start. These processes should be allocated to the CPU before it is given back to P1, i.e. include some fairness for long jobs already in the queue.  

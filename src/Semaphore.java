@@ -15,12 +15,6 @@ public class Semaphore
     private int iValue;
 
     /**
-     * ------------
-     * Constructors
-     * ------------
-     */
-
-    /**
      * With value parameter.
      *
      * NOTE: There is no check made whether the value is positive or negative.
