@@ -1,4 +1,3 @@
-package test;
 
 public class aaaa {
     static int turn=-1;
