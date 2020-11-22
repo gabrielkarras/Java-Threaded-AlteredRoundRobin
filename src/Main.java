@@ -1,7 +1,8 @@
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Scanner;
-
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 /**
     @Author(s) Gabriel Karras-40036341, Tianyang Jin-40045932
     @Date 03/10/2020
@@ -51,7 +52,7 @@ public class Main {
     /* Global Semaphore Data Field */
     static Semaphore mutex1 = new Semaphore(0);
     static Semaphore mutex2 = new Semaphore(1);
-
+    double static timer = 0; // Time slice
     /**
      * Reads the rows from input.txt in which the first digit in each row represents the arrival time.
      * The second digit in each row represents the CPU burst time.
@@ -105,7 +106,6 @@ public class Main {
 
         /* Member Data Field */
         Process[] ps; // Array of processes(emulates Ready queue)
-        double timer = 0; // Time slice
 
         /**
          * Default constructor for Scheduler
@@ -177,6 +177,9 @@ public class Main {
                 /* If the scheduler is done then stop */
                 if(!end) {
                     System.out.println("Scheduler finished");
+                    for(int i=0;i<ps.length;i++){   //this for loop is used to print the waiting time for each process
+                        System.out.println("The waiting time for process["+i+"] is: "+ps[i].waiting);
+                    }
                     break;
                 }
 
@@ -191,9 +194,10 @@ public class Main {
 
          /* Member Data Field */
         int ID; // ID of process-will help with determining turn
-        public double burst; // CPU burst time of the process(as well as the remaining time)
+        public double burst; // Remaining CPU burst time of the process
         public double arrival; // Arrival time of process
         public boolean running = true; // Status of process(running or waiting)
+        public double totalbursttime;//the overall CPU burst time
 
         /**
          * Default constructor for Process
@@ -205,6 +209,7 @@ public class Main {
             this.burst = cpuburst;
             this.ID = ID;
             this.arrival = arrival;
+            this.totalbursttime=cpuburst;
         }
 
         /**
@@ -247,6 +252,10 @@ public class Main {
                     System.out.println("process[" + ID + "] finished");
                     mutex2.Signal(); // Signal other processes
                     running = false; // Status is terminated
+                    finish=timer;
+                    double temp;
+                    temp = finish-arrival-totalbursttime+cpuburst;
+                    waiting=round1(temp,1);  //set the scale of the waiting time
                     break;
                 }
             }
@@ -286,5 +295,10 @@ public class Main {
 
         return array; // return array of integers
     }
-
+    //this function is used to set the scale
+    public static double round1(double input, int scale){
+        BigDecimal bigDecimal=new BigDecimal(input).setScale(scale, RoundingMode.HALF_EVEN);
+        return bigDecimal.doubleValue();
+    }
+    
 }
