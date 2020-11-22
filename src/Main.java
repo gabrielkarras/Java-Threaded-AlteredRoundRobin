@@ -1,3 +1,7 @@
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.Scanner;
+
 /**
     @Author(s) Gabriel Karras-40036341, Tianyang Jin-40045932
     @Date 03/10/2020
@@ -62,24 +66,36 @@ public class Main {
      *
      * @param args Default string argument for main
      */
-    public static void main(String[] args){
+    public static void main(String[] args) throws FileNotFoundException {
 
         /* Reading input.txt */
+        String f1 = "input.txt"; // File name
+        double[] entries = ReadFile(f1); // Process Stats:Burst Time and Arrival Time(2 entries per process)
+
+        //TODO Try to find a cleaner way of initializing processes
 
         /* Initialize processes */
-        Process p1 = new Process(10,1,0);
-        Process p2 = new Process(9,2,1);
-        Process p3 = new Process(4,10,2);
+        int number_of_processes = entries.length/2; // 2 entries per process->Total number of processes = #entries/2
 
-        // Array of processes
-        Process[] ps = {p1,p2,p3};
+        /* For each process i we grab entry 2*i for arrival time and 2*i + 1 for CPU burst time */
+        Process[] ps = new Process[number_of_processes];
+        for(int i = 0; i < ps.length; i++){
+            double cputime = entries[2*i + 1]; // second entry of row
+            double arrival = entries[2*i]; // first entry of row
+            ps[i] = new Process(cputime, arrival, i); // Initialize process and add to queue
+        }
 
         /* Initialize Scheduler and run every thread for each process */
         Scheduler thread = new Scheduler(ps);
-        for(int i = 0; i < ps.length; i++){
-            ps[i].start(); // Start threaded process
+        try {
+            for (int i = 0; i < ps.length; i++) {
+                ps[i].start(); // Start threaded process
+            }
+            thread.start(); // Start scheduler
         }
-        thread.start(); // Start scheduler
+        catch(Exception e){
+            e.getStackTrace();
+        }
 
         /* Write to output.txt */
     }
@@ -236,4 +252,39 @@ public class Main {
             }
         }
     }
+
+    /* Helper Methods*/
+
+    /**
+     * Accepts an input file in which the first digit represents the size of the array and
+     * the following digits represent the states of the light bulb(0 or 1).
+     * The method will then return an array populated by these light bulb states.
+     *
+     * @param fileName Name of the file and its file path. Must be located outside of src folder
+     * @return array of entries(arrival time and CPU burst time altogether)
+     * @throws FileNotFoundException Throws exception if system couldn't file the file
+     */
+    public static double[] ReadFile(String fileName) throws FileNotFoundException {
+
+        StringBuilder inputText = new StringBuilder(); // Read from file and create a String
+
+        Scanner in = new Scanner(new FileReader(fileName)); // Reader object
+        /* If there's a line within the file then append that line into the string builder */
+        while(in.hasNextLine()){
+            inputText.append(in.nextLine() + " "); // Separate each line with a space
+        }
+        in.close(); // Close Reader
+
+        String values = inputText.toString(); // Convert string builder to string
+        String[] arrayValue = values.split(" "); // Separate each digit of the string
+
+        /* Covert array of strings(w/digits) to array of integers for process initializing */
+        double[] array = new double[arrayValue.length];
+        for(int i = 0; i < arrayValue.length; i++){
+            array[i] = Double.parseDouble(arrayValue[i]);
+        }
+
+        return array; // return array of integers
+    }
+
 }
