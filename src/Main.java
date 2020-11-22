@@ -197,7 +197,9 @@ public class Main {
         public double burst; // Remaining CPU burst time of the process
         public double arrival; // Arrival time of process
         public boolean running = true; // Status of process(running or waiting)
-        public double totalbursttime;//the overall CPU burst time
+        public double totalbursttime;//The overall CPU burst time
+        public double waiting;//Waiting time of the process
+        public double finish;//The finish time of the process;
 
         /**
          * Default constructor for Process
