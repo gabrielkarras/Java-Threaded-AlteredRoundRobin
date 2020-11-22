@@ -1,8 +1,3 @@
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.Scanner;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 /**
     @Author(s) Gabriel Karras-40036341, Tianyang Jin-40045932
     @Date 03/10/2020
@@ -44,15 +39,25 @@ import java.math.RoundingMode;
 
  */
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.Scanner;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class Main {
 
     /* Global Data Field */
     static int turn=-1; // Indicates the turn of process
+    public static double timer = 0; // Time slice of system
+    static StringBuilder outputFile = new StringBuilder(); // Will create text format for output file
 
     /* Global Semaphore Data Field */
     static Semaphore mutex1 = new Semaphore(0);
     static Semaphore mutex2 = new Semaphore(1);
-    public static double timer = 0; // Time slice
+
+
     /**
      * Reads the rows from input.txt in which the first digit in each row represents the arrival time.
      * The second digit in each row represents the CPU burst time.
@@ -67,7 +72,7 @@ public class Main {
      *
      * @param args Default string argument for main
      */
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws FileNotFoundException, InterruptedException {
 
         /* Reading input.txt */
         String f1 = "input.txt"; // File name
@@ -98,7 +103,26 @@ public class Main {
             e.getStackTrace();
         }
 
+        /* Wait for all threads to terminate to proceed with writing */
+        try {
+            for (int i = 0; i < ps.length; i++) {
+                ps[i].join(); // Start threaded process
+            }
+            thread.join(); // Start scheduler
+        }
+        catch(Exception e){
+            e.getStackTrace();
+        }
+
         /* Write to output.txt */
+        try{
+            FileWriter output = new FileWriter("./output.txt");
+            output.write(outputFile.toString());
+            output.close();
+        }
+        catch(Exception e){
+            e.fillInStackTrace();
+        }
     }
 
     /* Scheduler Class */
@@ -127,7 +151,8 @@ public class Main {
          */
         public void run(){
 
-            System.out.println("scheduler start");
+            System.out.println("Scheduler Start\n");
+            outputFile.append("Scheduler Start\n");
 
             /* Verify the arrival time of all processes */
             double beginning = ps[0].arrival; // Start with arrival time of first process
@@ -136,7 +161,8 @@ public class Main {
             }
 
             timer = beginning; // Initiate Scheduler timer with earliest arrival time
-            System.out.println("Timer is: " + timer);
+            System.out.println("First process arrives at " + timer + "\n");
+            outputFile.append("\nFirst process arrives at " + timer + "\n\n");
 
             /* Schedule the processes */
             while(true) {
@@ -167,18 +193,24 @@ public class Main {
 
                 turn = thisturn; // Sets process id with current smallest remaining time
                 timer += ps[turn].burst*0.1; // Increment scheduler timer by q(10%)
-                System.out.println("timer is:" + timer);
 
                 /* Verify if all processes are terminated */
                 boolean end = false; // Are all processes terminated? By default said to false.
                 for(int i = 0; i < ps.length; i++){
                     end = end||ps[i].running;
                 }
+
                 /* If the scheduler is done then stop */
                 if(!end) {
+
+                    System.out.println("\n---------------------------------------------------------------------------");
                     System.out.println("Scheduler finished");
+                    outputFile.append("\n-------------------------------------------------------------------------\n");
+                    outputFile.append("Scheduler finished\n");
+
                     for(int i=0;i<ps.length;i++){   //this for loop is used to print the waiting time for each process
-                        System.out.println("The waiting time for process["+i+"] is: "+ps[i].waiting);
+                        System.out.println("The waiting time for process " + i + " is: "+ps[i].waiting);
+                        outputFile.append("The waiting time for process " + i + " is: "+ps[i].waiting + "\n");
                     }
                     break;
                 }
@@ -224,7 +256,7 @@ public class Main {
          * Processes are then considered terminated if their remaining time is less than 0.1
          */
         public void run() {
-            System.out.println("process[" + ID + "] start");
+
             /* Process will continually verify */
             while (true) {
 
@@ -240,8 +272,18 @@ public class Main {
                 /* Entering critical section */
                 mutex1.Wait();
 
+                double start_timer = timer - 0.1*burst; // Will give us the %10 of burst to help with output formatting
                 burst = 0.9 * burst; // Decrease remaining time by q(%10)
-                System.out.println("process[" + ID + "] remaining is: " + burst);
+
+
+                /* Print content */
+                System.out.println("Time " + start_timer + ", Process "+ID+", Started");
+                System.out.println("Time " + start_timer + ", Process "+ID+", Resumed");
+                System.out.println("Time " + timer + ", Process "+ID+", Paused");
+                outputFile.append("Time " + start_timer + ", Process "+ID+", Started\n");
+                outputFile.append("Time " + start_timer + ", Process "+ID+", Resumed\n");
+                outputFile.append("Time " + timer + ", Process "+ID+", Paused\n");
+
                 /* Exiting critical section */
 
                 /*
@@ -250,16 +292,22 @@ public class Main {
                 * Any remaining burst time for a process that is less than cut-off is considered terminated
                 * */
                 if (burst < 0.1) {
-                    System.out.println("process[" + ID + "] finished");
+
+                    System.out.println("Time " + timer + ", Process " + ID + ", Finished");
+                    outputFile.append("Time " + timer + ", Process " + ID + ", Finished\n");
+
                     running = false; // Status is terminated
-                    finish=timer;
+                    finish = timer;
+
                     double temp;
-                    temp = finish-arrival-totalbursttime+burst;
-                    waiting=round1(temp,1);  //set the scale of the waiting time
+                    temp = finish - arrival - totalbursttime + burst;
+                    waiting = round1(temp,1);  //set the scale of the waiting time
+
                     mutex2.Signal(); // Signal other processes
                     break;
                 }
-                mutex2.Signal();
+
+                mutex2.Signal(); // Signal other processes
             }
         }
     }
@@ -297,7 +345,13 @@ public class Main {
 
         return array; // return array of integers
     }
-    //this function is used to set the scale
+
+    /**
+     * Truncate double precision values
+     * @param input The double precision value
+     * @param scale The amount of decimal numbers(how many decimal points we wish to have)
+     * @return Truncated value
+     */
     public static double round1(double input, int scale){
         BigDecimal bigDecimal=new BigDecimal(input).setScale(scale, RoundingMode.HALF_EVEN);
         return bigDecimal.doubleValue();
