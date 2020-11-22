@@ -52,7 +52,7 @@ public class Main {
     /* Global Semaphore Data Field */
     static Semaphore mutex1 = new Semaphore(0);
     static Semaphore mutex2 = new Semaphore(1);
-    public double static timer = 0; // Time slice
+    public static double timer = 0; // Time slice
     /**
      * Reads the rows from input.txt in which the first digit in each row represents the arrival time.
      * The second digit in each row represents the CPU burst time.
