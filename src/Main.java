@@ -8,6 +8,7 @@
                     Implements semaphores with wait and signal
 
         -Main: Implements hybrid round robin scheduler and runs main program process.
+               Reads from input.txt, populates scheduler with processes and writes to output.txt
                Includes static classes Scheduler and Process
 
         -Scheduler: Implements the scheduler logic by searching for shortest remaining time and allocating time
