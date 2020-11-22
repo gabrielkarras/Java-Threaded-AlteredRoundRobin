@@ -254,7 +254,7 @@ public class Main {
                     running = false; // Status is terminated
                     finish=timer;
                     double temp;
-                    temp = finish-arrival-totalbursttime+cpuburst;
+                    temp = finish-arrival-totalbursttime+burst;
                     waiting=round1(temp,1);  //set the scale of the waiting time
                     break;
                 }
