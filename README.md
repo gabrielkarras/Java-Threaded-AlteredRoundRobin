@@ -83,5 +83,7 @@ Time 10, Process 1, Finished
 
 Waiting Times:
 Process 1: 4
+
 Process 2: 2
+
 Process 3: 2 
