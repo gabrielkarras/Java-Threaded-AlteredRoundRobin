@@ -243,7 +243,6 @@ public class Main {
                 burst = 0.9 * burst; // Decrease remaining time by q(%10)
                 System.out.println("process[" + ID + "] remaining is: " + burst);
                 /* Exiting critical section */
-                mutex2.Signal();
 
                 /*
                 * Verify if process is terminated
@@ -252,14 +251,15 @@ public class Main {
                 * */
                 if (burst < 0.1) {
                     System.out.println("process[" + ID + "] finished");
-                    mutex2.Signal(); // Signal other processes
                     running = false; // Status is terminated
                     finish=timer;
                     double temp;
                     temp = finish-arrival-totalbursttime+burst;
                     waiting=round1(temp,1);  //set the scale of the waiting time
+                    mutex2.Signal(); // Signal other processes
                     break;
                 }
+                mutex2.Signal();
             }
         }
     }
