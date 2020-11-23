@@ -284,6 +284,8 @@ public class Main {
                 outputFile.append("Time " + start_timer + ", Process "+ID+", Started\n");
                 outputFile.append("Time " + start_timer + ", Process "+ID+", Resumed\n");
                 outputFile.append("Time " + timer + ", Process "+ID+", Paused\n");
+                
+                turn=-1;//reset turn
 
                 /* Exiting critical section */
 
