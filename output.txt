@@ -2,18 +2,21 @@ Scheduler Start
 
 First process arrives at 1.0
 
+Time 1.0, Process 0, Started
 Time 1.0, Process 0, Resumed
 Time 1.5, Process 0, Paused
 Time 1.5, Process 0, Resumed
 Time 1.95, Process 0, Paused
 Time 1.95, Process 0, Resumed
 Time 2.355, Process 0, Paused
+Time 2.3550000000000004, Process 1, Started
 Time 2.3550000000000004, Process 1, Resumed
 Time 2.6550000000000002, Process 1, Paused
 Time 2.6550000000000002, Process 1, Resumed
 Time 2.9250000000000003, Process 1, Paused
 Time 2.9250000000000003, Process 1, Resumed
 Time 3.168, Process 1, Paused
+Time 3.168, Process 2, Started
 Time 3.168, Process 2, Resumed
 Time 3.2680000000000002, Process 2, Paused
 Time 3.2680000000000002, Process 2, Resumed
