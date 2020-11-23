@@ -233,6 +233,7 @@ public class Main {
         public double totalbursttime;//The overall CPU burst time
         public double waiting;//Waiting time of the process
         public double finish;//The finish time of the process;
+        private boolean start=true;//check if this is the first burst of this process
 
         /**
          * Default constructor for Process
@@ -278,10 +279,15 @@ public class Main {
 
 
                 /* Print content */
-                System.out.println("Time " + start_timer + ", Process "+ID+", Started");
+                if(start) {
+                    System.out.println("Time " + start_timer + ", Process " + ID + ", Started");
+                }
                 System.out.println("Time " + start_timer + ", Process "+ID+", Resumed");
                 System.out.println("Time " + timer + ", Process "+ID+", Paused");
-                outputFile.append("Time " + start_timer + ", Process "+ID+", Started\n");
+                if(start) {
+                    outputFile.append("Time " + start_timer + ", Process " + ID + ", Started\n");
+                    start=false;
+                }
                 outputFile.append("Time " + start_timer + ", Process "+ID+", Resumed\n");
                 outputFile.append("Time " + timer + ", Process "+ID+", Paused\n");
                 
